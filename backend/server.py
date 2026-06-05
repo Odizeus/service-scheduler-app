@@ -11,6 +11,8 @@ import os
 import secrets
 import string
 import uuid
+
+import certifi
 from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
@@ -64,7 +66,12 @@ log = logging.getLogger("scheduler")
 
 MONGO_URL = os.environ["MONGO_URL"]
 DB_NAME = os.environ["DB_NAME"]
-client = AsyncIOMotorClient(MONGO_URL)
+client = AsyncIOMotorClient(
+    MONGO_URL,
+    tls=True,
+    tlsCAFile=certifi.where(),
+    serverSelectionTimeoutMS=10000,
+)
 db = client[DB_NAME]
 
 app = FastAPI(title="Service Business Scheduler")
