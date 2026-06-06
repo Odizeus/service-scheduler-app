@@ -10,12 +10,62 @@
         <link rel="apple-touch-icon" href="/icon-192.svg" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-title" content="Scheduler" />
+        <style>
+            .staff-access-link {
+                position: fixed;
+                right: 16px;
+                bottom: 16px;
+                z-index: 50;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                min-height: 40px;
+                padding: 8px 14px;
+                border-radius: 999px;
+                border: 1px solid rgba(255, 255, 255, 0.18);
+                background: rgba(255, 255, 255, 0.94);
+                color: #111113;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.22);
+                font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+                font-size: 13px;
+                font-weight: 700;
+                text-decoration: none;
+                backdrop-filter: blur(8px);
+            }
+            .staff-access-link:hover {
+                background: #111113;
+                color: #ffffff;
+            }
+            body.is-admin-route .staff-access-link {
+                display: none;
+            }
+        </style>
         <script>window.addEventListener("error",function(e){if(e.error instanceof DOMException&&e.error.name==="DataCloneError"&&e.message&&e.message.includes("PerformanceServerTiming")){e.stopImmediatePropagation();e.preventDefault()}},true);</script>
+        <script>
+            (function () {
+                function syncRouteClass() {
+                    document.body && document.body.classList.toggle("is-admin-route", window.location.pathname.indexOf("/admin") === 0);
+                }
+                window.addEventListener("DOMContentLoaded", syncRouteClass);
+                window.addEventListener("popstate", syncRouteClass);
+                var pushState = history.pushState;
+                history.pushState = function () {
+                    pushState.apply(history, arguments);
+                    setTimeout(syncRouteClass, 0);
+                };
+                var replaceState = history.replaceState;
+                history.replaceState = function () {
+                    replaceState.apply(history, arguments);
+                    setTimeout(syncRouteClass, 0);
+                };
+            })();
+        </script>
         <title>Service Scheduler</title>
     </head>
     <body>
         <noscript>You need to enable JavaScript to run this app.</noscript>
         <div id="root"></div>
+        <a class="staff-access-link" href="/admin/login" aria-label="Admin login">Admin Login</a>
         <script>
             !(function (t, e) {
                 var o, n, p, r;
