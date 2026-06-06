@@ -221,12 +221,16 @@ export default function AdminAppointments() {
       ) : (
         <Button
           data-testid={ADMIN.apptCancelBtn(a.id)}
-          variant={mobile ? "outline" : "ghost"}
+          variant="outline"
           size="sm"
           onClick={() => openCancel(a)}
-          className={mobile ? "w-full touch-manipulation" : ""}
+          className={[
+            "border-orange-500/80 bg-orange-600 text-white hover:bg-orange-700 hover:text-white hover:border-orange-500",
+            "focus-visible:ring-orange-400",
+            mobile ? "w-full touch-manipulation" : "",
+          ].join(" ")}
         >
-          <X className="h-4 w-4 mr-1" /> Cancel
+          <X className="h-4 w-4 mr-1" /> Cancel Appointment
         </Button>
       )}
     </>
