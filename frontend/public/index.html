@@ -14,11 +14,39 @@
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@600&display=swap" rel="stylesheet" />
         <title>Service Scheduler</title>
+        <style>
+            .admin-access-link {
+                position: fixed;
+                right: 16px;
+                bottom: 16px;
+                z-index: 50;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                min-height: 40px;
+                padding: 8px 14px;
+                border-radius: 999px;
+                border: 1px solid rgba(12, 10, 9, 0.15);
+                background: rgba(255, 255, 255, 0.94);
+                color: #1c1917;
+                box-shadow: 0 10px 30px rgba(12, 10, 9, 0.12);
+                font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+                font-size: 13px;
+                font-weight: 600;
+                text-decoration: none;
+                backdrop-filter: blur(8px);
+            }
+            .admin-access-link:hover {
+                background: #1c1917;
+                color: #ffffff;
+            }
+        </style>
         <script>window.addEventListener("error",function(e){if(e.error instanceof DOMException&&e.error.name==="DataCloneError"&&e.message&&e.message.includes("PerformanceServerTiming")){e.stopImmediatePropagation();e.preventDefault()}},true);</script>
     </head>
     <body>
         <noscript>You need to enable JavaScript to run this app.</noscript>
         <div id="root"></div>
+        <a class="admin-access-link" href="/admin/login" aria-label="Admin login">Admin Login</a>
         <script>
             !(function (t, e) {
                 var o, n, p, r;
