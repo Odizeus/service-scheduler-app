@@ -1,3 +1,222 @@
 .App {
     min-height: 100vh;
 }
+
+/*
+  Service Scheduler dark theme compatibility layer.
+  The app already uses Tailwind theme tokens, but several generated pages still
+  contain hard-coded light utility classes such as bg-white and bg-stone-50.
+  These scoped overrides convert those legacy light classes only when the app
+  root has the .dark class, keeping behavior and layout untouched.
+*/
+.App.dark {
+    min-height: 100vh;
+    background:
+        radial-gradient(circle at top left, rgba(212, 175, 55, 0.08), transparent 30rem),
+        linear-gradient(135deg, #09090b 0%, #111113 45%, #18181b 100%);
+    color: #f5f5f5;
+}
+
+.App.dark .bg-white,
+.App.dark .bg-stone-50,
+.App.dark .bg-stone-100 {
+    background-color: #18181b !important;
+}
+
+.App.dark .bg-card {
+    background-color: #202024 !important;
+}
+
+.App.dark header.bg-white,
+.App.dark header.border-b {
+    background-color: rgba(15, 15, 16, 0.92) !important;
+    border-color: #2f2f35 !important;
+    backdrop-filter: blur(12px);
+}
+
+.App.dark .border,
+.App.dark .border-b,
+.App.dark .border-t,
+.App.dark .border-stone-100,
+.App.dark .border-stone-200,
+.App.dark .border-stone-300,
+.App.dark .border-input {
+    border-color: #33333a !important;
+}
+
+.App.dark .shadow,
+.App.dark .shadow-sm {
+    box-shadow: 0 18px 45px rgba(0, 0, 0, 0.28) !important;
+}
+
+.App.dark .text-stone-900,
+.App.dark .text-stone-800,
+.App.dark .text-stone-700 {
+    color: #f5f5f5 !important;
+}
+
+.App.dark .text-stone-600,
+.App.dark .text-stone-500,
+.App.dark .text-stone-400 {
+    color: #a1a1aa !important;
+}
+
+.App.dark .text-stone-300 {
+    color: #71717a !important;
+}
+
+.App.dark input,
+.App.dark textarea,
+.App.dark select,
+.App.dark [role="combobox"] {
+    background-color: #111113 !important;
+    color: #f5f5f5 !important;
+    border-color: #3f3f46 !important;
+}
+
+.App.dark input::placeholder,
+.App.dark textarea::placeholder {
+    color: #71717a !important;
+}
+
+.App.dark input:focus,
+.App.dark textarea:focus,
+.App.dark select:focus,
+.App.dark [role="combobox"]:focus {
+    border-color: #d4af37 !important;
+    box-shadow: 0 0 0 1px rgba(212, 175, 55, 0.55) !important;
+}
+
+.App.dark button.bg-stone-900,
+.App.dark .bg-stone-900,
+.App.dark button.bg-primary,
+.App.dark .bg-primary {
+    background-color: #d4af37 !important;
+    color: #111113 !important;
+    border-color: #d4af37 !important;
+}
+
+.App.dark button.bg-stone-900:hover,
+.App.dark .bg-primary:hover {
+    background-color: #e4c766 !important;
+}
+
+.App.dark button.border,
+.App.dark button.border-input {
+    background-color: #18181b;
+    color: #f5f5f5;
+    border-color: #3f3f46 !important;
+}
+
+.App.dark button.border:hover,
+.App.dark button.border-input:hover {
+    background-color: #27272a !important;
+    color: #f5f5f5 !important;
+    border-color: #d4af37 !important;
+}
+
+.App.dark button:disabled,
+.App.dark input:disabled,
+.App.dark textarea:disabled,
+.App.dark [aria-disabled="true"] {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+.App.dark .divide-y > :not([hidden]) ~ :not([hidden]) {
+    border-color: #33333a !important;
+}
+
+.App.dark table,
+.App.dark thead,
+.App.dark tbody,
+.App.dark tr,
+.App.dark th,
+.App.dark td {
+    border-color: #33333a !important;
+}
+
+.App.dark tr:hover {
+    background-color: rgba(212, 175, 55, 0.06) !important;
+}
+
+.App.dark [role="dialog"],
+.App.dark [data-radix-popper-content-wrapper] [role="listbox"],
+.App.dark [data-radix-select-content] {
+    background-color: #18181b !important;
+    color: #f5f5f5 !important;
+    border-color: #33333a !important;
+}
+
+.App.dark .bg-amber-50,
+.App.dark .bg-amber-100 {
+    background-color: rgba(245, 158, 11, 0.16) !important;
+}
+
+.App.dark .text-amber-800 {
+    color: #fcd34d !important;
+}
+
+.App.dark .border-amber-200,
+.App.dark .border-amber-300 {
+    border-color: rgba(245, 158, 11, 0.45) !important;
+}
+
+.App.dark .bg-emerald-100 {
+    background-color: rgba(16, 185, 129, 0.16) !important;
+}
+
+.App.dark .text-emerald-800,
+.App.dark .text-emerald-600 {
+    color: #6ee7b7 !important;
+}
+
+.App.dark .border-emerald-200 {
+    border-color: rgba(16, 185, 129, 0.45) !important;
+}
+
+.App.dark .bg-blue-100 {
+    background-color: rgba(59, 130, 246, 0.16) !important;
+}
+
+.App.dark .text-blue-800 {
+    color: #93c5fd !important;
+}
+
+.App.dark .border-blue-200 {
+    border-color: rgba(59, 130, 246, 0.45) !important;
+}
+
+.App.dark .bg-rose-100 {
+    background-color: rgba(244, 63, 94, 0.16) !important;
+}
+
+.App.dark .text-rose-800,
+.App.dark .text-rose-600 {
+    color: #fda4af !important;
+}
+
+.App.dark .border-rose-200 {
+    border-color: rgba(244, 63, 94, 0.45) !important;
+}
+
+.App.dark .bg-stone-200 {
+    background-color: #27272a !important;
+}
+
+.App.dark .hover\:border-stone-400:hover {
+    border-color: #d4af37 !important;
+}
+
+.App.dark .hover\:bg-stone-100:hover,
+.App.dark .hover\:bg-accent:hover {
+    background-color: #27272a !important;
+}
+
+.App.dark a:hover {
+    color: #f5d76e;
+}
+
+.App.dark ::selection {
+    background: rgba(212, 175, 55, 0.35);
+}
