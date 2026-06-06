@@ -45,6 +45,11 @@ const STATUS_LABEL = {
   no_show: "No-show",
 };
 
+const cleanDescription = (description) => {
+  if (!description || !description.trim()) return "No details provided.";
+  return description.trim();
+};
+
 export default function AdminAppointments() {
   const qc = useQueryClient();
   const [filters, setFilters] = useState({
@@ -225,8 +230,16 @@ export default function AdminAppointments() {
                 <div>
                   <div className="text-sm font-medium">{a.customer?.full_name}</div>
                   <div className="text-xs text-stone-500 break-all">{a.customer?.email}</div>
+                  <div className="text-xs text-stone-500">{a.customer?.phone}</div>
                   <div className="text-xs text-stone-500">{a.service_type}</div>
                   <div className="text-xs font-mono text-stone-500">{a.confirmation_code}</div>
+                </div>
+
+                <div className="rounded-md border bg-stone-50 p-3">
+                  <div className="text-[11px] font-semibold uppercase tracking-wide text-stone-500">Details</div>
+                  <div className="mt-1 whitespace-pre-wrap break-words text-sm text-stone-700">
+                    {cleanDescription(a.description)}
+                  </div>
                 </div>
 
                 {a.needs_approval && a.status === "pending" && (
@@ -291,6 +304,7 @@ export default function AdminAppointments() {
                 <TableHead>Time</TableHead>
                 <TableHead>Service</TableHead>
                 <TableHead>Customer</TableHead>
+                <TableHead>Details</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Code</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
@@ -306,6 +320,10 @@ export default function AdminAppointments() {
                     <TableCell>
                       <div className="font-medium">{a.customer?.full_name}</div>
                       <div className="text-xs text-stone-500">{a.customer?.email}</div>
+                      <div className="text-xs text-stone-500">{a.customer?.phone}</div>
+                    </TableCell>
+                    <TableCell className="max-w-[260px] whitespace-pre-wrap break-words text-sm text-stone-700">
+                      {cleanDescription(a.description)}
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
@@ -359,7 +377,7 @@ export default function AdminAppointments() {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center text-stone-500 py-8">
+                  <TableCell colSpan={8} className="text-center text-stone-500 py-8">
                     {apptQ.isLoading ? "Loading..." : "No appointments match the filters."}
                   </TableCell>
                 </TableRow>
