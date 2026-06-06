@@ -234,6 +234,28 @@ export default function AdminAppointments() {
     </>
   );
 
+  const StatusSelector = ({ a, mobile = false }) => {
+    if (a.status === "cancelled") return null;
+    return (
+      <Select
+        value={a.status}
+        onValueChange={(v) => v && updateStatus.mutate({ id: a.id, status: v })}
+      >
+        <SelectTrigger
+          data-testid={`admin-appt-status-select-${a.id}`}
+          className={mobile ? "h-10 w-full" : "h-8 w-[130px]"}
+        >
+          <SelectValue placeholder="Set status" />
+        </SelectTrigger>
+        <SelectContent>
+          {STATUS_OPTIONS.map((s) => (
+            <SelectItem key={s} value={s}>{STATUS_LABEL[s]}</SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    );
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -315,10 +337,7 @@ export default function AdminAppointments() {
                   <Badge data-testid={`admin-appt-needs-approval-${a.id}`} variant="outline" className="border-amber-300 bg-amber-50 text-amber-800 text-[10px]">Needs approval</Badge>
                 )}
                 <div className="flex flex-col gap-2">
-                  <Select value={a.status === "cancelled" ? "" : a.status} onValueChange={(v) => v && updateStatus.mutate({ id: a.id, status: v })} disabled={a.status === "cancelled"}>
-                    <SelectTrigger data-testid={`admin-appt-status-select-${a.id}`} className="h-10 w-full"><SelectValue placeholder="Set status" /></SelectTrigger>
-                    <SelectContent>{STATUS_OPTIONS.map((s) => <SelectItem key={s} value={s}>{STATUS_LABEL[s]}</SelectItem>)}</SelectContent>
-                  </Select>
+                  <StatusSelector a={a} mobile />
                   <AppointmentActions a={a} mobile />
                 </div>
               </CardContent>
@@ -353,10 +372,7 @@ export default function AdminAppointments() {
                   <TableCell className="font-mono text-xs">{a.confirmation_code}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-2">
-                      <Select value={a.status === "cancelled" ? "" : a.status} onValueChange={(v) => v && updateStatus.mutate({ id: a.id, status: v })} disabled={a.status === "cancelled"}>
-                        <SelectTrigger data-testid={`admin-appt-status-select-${a.id}`} className="h-8 w-[130px]"><SelectValue placeholder="Set status" /></SelectTrigger>
-                        <SelectContent>{STATUS_OPTIONS.map((s) => <SelectItem key={s} value={s}>{STATUS_LABEL[s]}</SelectItem>)}</SelectContent>
-                      </Select>
+                      <StatusSelector a={a} />
                       <AppointmentActions a={a} />
                     </div>
                   </TableCell>
