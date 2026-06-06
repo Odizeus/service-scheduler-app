@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { fmtTimeBlock, ymd } from "@/lib/dates";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
   ToggleGroup, ToggleGroupItem,
@@ -11,18 +11,18 @@ import {
 import { ChevronLeft, ChevronRight, Ban } from "lucide-react";
 
 const STATUS_COLOR = {
-  pending: "bg-amber-100 text-amber-800 border-amber-200",
-  confirmed: "bg-emerald-100 text-emerald-800 border-emerald-200",
-  completed: "bg-blue-100 text-blue-800 border-blue-200",
-  cancelled: "bg-rose-100 text-rose-800 border-rose-200",
-  no_show: "bg-stone-200 text-stone-700 border-stone-300",
+  pending: "bg-amber-500/15 text-amber-200 border-amber-400/40",
+  confirmed: "bg-emerald-500/15 text-emerald-200 border-emerald-400/40",
+  completed: "bg-blue-500/15 text-blue-200 border-blue-400/40",
+  cancelled: "bg-rose-500/15 text-rose-200 border-rose-400/40",
+  no_show: "bg-zinc-700/70 text-zinc-200 border-zinc-600",
 };
 const STATUS_DOT = {
-  pending: "bg-amber-500",
-  confirmed: "bg-emerald-500",
-  completed: "bg-blue-500",
-  cancelled: "bg-rose-500",
-  no_show: "bg-stone-400",
+  pending: "bg-amber-400",
+  confirmed: "bg-emerald-400",
+  completed: "bg-blue-400",
+  cancelled: "bg-rose-400",
+  no_show: "bg-zinc-400",
 };
 const STATUS_LABEL = {
   pending: "Pending", confirmed: "Confirmed", completed: "Completed",
@@ -30,9 +30,8 @@ const STATUS_LABEL = {
 };
 
 function startOfWeek(date) {
-  // ISO Monday-first
   const d = new Date(date);
-  const day = (d.getDay() + 6) % 7; // 0..6 Mon..Sun
+  const day = (d.getDay() + 6) % 7;
   d.setDate(d.getDate() - day);
   d.setHours(0, 0, 0, 0);
   return d;
@@ -52,14 +51,12 @@ export default function AdminCalendar() {
   const [view, setView] = useState("month");
   const [anchor, setAnchor] = useState(new Date());
 
-  // Compute date range
   const range = useMemo(() => {
     if (view === "day") return { from: ymd(anchor), to: ymd(anchor) };
     if (view === "week") {
       const start = startOfWeek(anchor);
       return { from: ymd(start), to: ymd(addDays(start, 6)) };
     }
-    // month — extend to include the leading/trailing weeks shown in grid
     const m = monthRange(anchor);
     const gridStart = startOfWeek(m.first);
     const gridEnd = addDays(startOfWeek(m.last), 6);
@@ -82,7 +79,6 @@ export default function AdminCalendar() {
       (await api.get("/admin/availability-overrides", { params: range })).data,
   });
 
-  // Group by date
   const byDate = useMemo(() => {
     const m = {};
     (apptQ.data?.items || []).forEach((a) => {
@@ -133,21 +129,22 @@ export default function AdminCalendar() {
     <div className="space-y-6" data-testid="calendar-dashboard">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h2 className="text-2xl font-semibold tracking-tight">Calendar</h2>
-          <p className="text-sm text-stone-500">
+          <h2 className="text-2xl font-semibold tracking-tight text-zinc-50">Calendar</h2>
+          <p className="text-sm text-zinc-400">
             <span data-testid="calendar-total-count">{totalAppts}</span> appointment{totalAppts === 1 ? "" : "s"} in view
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
           <ToggleGroup
             type="single"
             value={view}
             onValueChange={(v) => v && setView(v)}
             data-testid="calendar-view-switcher"
+            className="rounded-xl border border-zinc-800 bg-zinc-950/60 p-1"
           >
-            <ToggleGroupItem value="month" data-testid="calendar-view-month">Month</ToggleGroupItem>
-            <ToggleGroupItem value="week" data-testid="calendar-view-week">Week</ToggleGroupItem>
-            <ToggleGroupItem value="day" data-testid="calendar-view-day">Day</ToggleGroupItem>
+            <ToggleGroupItem value="month" data-testid="calendar-view-month" className="data-[state=on]:bg-[#d4af37] data-[state=on]:text-zinc-950 text-zinc-300 rounded-lg">Month</ToggleGroupItem>
+            <ToggleGroupItem value="week" data-testid="calendar-view-week" className="data-[state=on]:bg-[#d4af37] data-[state=on]:text-zinc-950 text-zinc-300 rounded-lg">Week</ToggleGroupItem>
+            <ToggleGroupItem value="day" data-testid="calendar-view-day" className="data-[state=on]:bg-[#d4af37] data-[state=on]:text-zinc-950 text-zinc-300 rounded-lg">Day</ToggleGroupItem>
           </ToggleGroup>
           <div className="flex items-center gap-1">
             <Button data-testid="calendar-prev" variant="outline" size="icon" onClick={() => shift(-1)}>
@@ -163,13 +160,13 @@ export default function AdminCalendar() {
         </div>
       </div>
 
-      <div className="text-sm font-medium text-stone-700" data-testid="calendar-header-label">
+      <div className="rounded-2xl border border-zinc-800 bg-zinc-950/45 px-4 py-3 text-sm font-medium text-[#f5d76e]" data-testid="calendar-header-label">
         {headerLabel()}
       </div>
 
       <Legend />
 
-      <Card>
+      <Card className="border-zinc-800 bg-zinc-950/55 shadow-[0_22px_60px_rgba(0,0,0,0.3)]">
         <CardContent className="p-4">
           {view === "month" && (
             <MonthView
@@ -203,15 +200,15 @@ export default function AdminCalendar() {
 
 function Legend() {
   return (
-    <div className="flex flex-wrap items-center gap-3 text-xs text-stone-600" data-testid="calendar-legend">
+    <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-zinc-800 bg-zinc-950/35 px-4 py-3 text-xs text-zinc-300" data-testid="calendar-legend">
       {Object.entries(STATUS_LABEL).map(([k, label]) => (
         <span key={k} className="inline-flex items-center gap-1.5">
-          <span className={`h-2 w-2 rounded-full ${STATUS_DOT[k]}`} />
+          <span className={`h-2 w-2 rounded-full shadow-[0_0_10px_currentColor] ${STATUS_DOT[k]}`} />
           {label}
         </span>
       ))}
-      <span className="inline-flex items-center gap-1.5 ml-3">
-        <Ban className="h-3 w-3 text-stone-500" /> Blocked
+      <span className="inline-flex items-center gap-1.5 sm:ml-3 text-zinc-400">
+        <Ban className="h-3 w-3" /> Blocked
       </span>
     </div>
   );
@@ -224,10 +221,10 @@ function MonthView({ anchor, byDate, blocksByDate, onPick }) {
   const heads = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
   return (
     <div data-testid="calendar-month-view">
-      <div className="grid grid-cols-7 gap-1 text-xs text-stone-500 mb-2">
-        {heads.map((h) => <div key={h} className="text-center font-medium">{h}</div>)}
+      <div className="grid grid-cols-7 gap-1 text-xs text-zinc-500 mb-2">
+        {heads.map((h) => <div key={h} className="text-center font-semibold uppercase tracking-wide">{h}</div>)}
       </div>
-      <div className="grid grid-cols-7 gap-1">
+      <div className="grid grid-cols-7 gap-1.5">
         {cells.map((d) => {
           const ds = ymd(d);
           const inMonth = d.getMonth() === anchor.getMonth();
@@ -240,20 +237,20 @@ function MonthView({ anchor, byDate, blocksByDate, onPick }) {
               data-testid={`calendar-month-day-${ds}`}
               onClick={() => onPick(d)}
               className={[
-                "relative min-h-[88px] rounded-md border p-1.5 text-left transition",
-                inMonth ? "bg-white" : "bg-stone-50",
-                dayBlocked ? "border-stone-300" : "border-stone-200",
-                "hover:border-stone-400",
+                "group relative min-h-[92px] rounded-xl border p-2 text-left transition-all duration-200",
+                inMonth ? "bg-zinc-900/90 border-zinc-800" : "bg-zinc-950/65 border-zinc-900 opacity-75",
+                dayBlocked ? "border-zinc-600" : "",
+                "hover:border-[#d4af37] hover:bg-zinc-800/80 hover:shadow-[0_12px_35px_rgba(0,0,0,0.28)]",
               ].join(" ")}
             >
               <div className="flex items-center justify-between">
-                <span className={["text-xs", inMonth ? "text-stone-800" : "text-stone-400"].join(" ")}>
+                <span className={["text-xs font-semibold", inMonth ? "text-zinc-100" : "text-zinc-600"].join(" ")}>
                   {d.getDate()}
                 </span>
                 {appts.length > 0 && (
                   <Badge
                     variant="secondary"
-                    className="h-5 px-1.5 text-[10px]"
+                    className="h-5 px-1.5 text-[10px] border border-[#d4af37]/30 bg-[#d4af37]/15 text-[#f5d76e]"
                     data-testid={`calendar-day-count-${ds}`}
                   >
                     {appts.length}
@@ -263,23 +260,23 @@ function MonthView({ anchor, byDate, blocksByDate, onPick }) {
               {dayBlocked && (
                 <div
                   data-testid={`calendar-blocked-day-${ds}`}
-                  className="absolute inset-1.5 rounded bg-stone-100/60 flex items-center justify-center pointer-events-none"
+                  className="absolute inset-1.5 rounded-lg border border-dashed border-zinc-600 bg-zinc-950/75 flex items-center justify-center pointer-events-none"
                 >
-                  <Ban className="h-3 w-3 text-stone-500" />
+                  <Ban className="h-4 w-4 text-zinc-400" />
                 </div>
               )}
-              <div className="mt-1 space-y-0.5">
+              <div className="mt-2 space-y-1">
                 {appts.slice(0, 3).map((a) => (
                   <div
                     key={a.id}
-                    className="flex items-center gap-1 text-[10px] text-stone-600 truncate"
+                    className="flex items-center gap-1.5 rounded-md bg-zinc-950/70 px-1.5 py-1 text-[10px] text-zinc-300 truncate border border-zinc-800/80"
                   >
-                    <span className={`h-1.5 w-1.5 rounded-full shrink-0 ${STATUS_DOT[a.status] || "bg-stone-400"}`} />
-                    <span className="truncate">{a.local_time_block.split("-")[0]} · {a.customer?.full_name || ""}</span>
+                    <span className={`h-1.5 w-1.5 rounded-full shrink-0 ${STATUS_DOT[a.status] || "bg-zinc-400"}`} />
+                    <span className="truncate">{a.local_time_block.split("-")[0]} · {a.customer?.full_name || "Customer"}</span>
                   </div>
                 ))}
                 {appts.length > 3 && (
-                  <div className="text-[10px] text-stone-500">+{appts.length - 3} more</div>
+                  <div className="text-[10px] text-[#f5d76e]">+{appts.length - 3} more</div>
                 )}
               </div>
             </button>
@@ -290,7 +287,7 @@ function MonthView({ anchor, byDate, blocksByDate, onPick }) {
   );
 }
 
-function WeekView({ anchor, byDate, blocksByDate, business }) {
+function WeekView({ anchor, byDate, blocksByDate }) {
   const start = startOfWeek(anchor);
   const days = Array.from({ length: 7 }, (_, i) => addDays(start, i));
   return (
@@ -303,47 +300,47 @@ function WeekView({ anchor, byDate, blocksByDate, business }) {
           <div
             key={ds}
             data-testid={`calendar-week-day-${ds}`}
-            className="border rounded-md p-2 bg-white min-h-[180px]"
+            className="rounded-xl border border-zinc-800 bg-zinc-900/75 p-3 min-h-[190px]"
           >
-            <div className="flex items-center justify-between mb-2">
-              <div className="text-xs font-medium text-stone-700">
+            <div className="flex items-center justify-between mb-3">
+              <div className="text-xs font-semibold text-zinc-100">
                 {d.toLocaleDateString(undefined, { weekday: "short" })} {d.getDate()}
               </div>
-              <Badge variant="secondary" className="h-5 px-1.5 text-[10px]">
+              <Badge variant="secondary" className="h-5 px-1.5 text-[10px] border border-zinc-700 bg-zinc-950 text-zinc-300">
                 {appts.length}
               </Badge>
             </div>
             {blk?.day && (
               <div
                 data-testid={`calendar-blocked-day-${ds}`}
-                className="mb-2 flex items-center gap-1 text-[11px] text-stone-600 bg-stone-100 rounded px-2 py-1"
+                className="mb-2 flex items-center gap-1 text-[11px] text-zinc-300 bg-zinc-950/75 border border-dashed border-zinc-600 rounded-lg px-2 py-1"
               >
                 <Ban className="h-3 w-3" /> Day blocked
               </div>
             )}
-            <div className="space-y-1">
+            <div className="space-y-1.5">
               {appts.map((a) => (
                 <div
                   key={a.id}
                   data-testid={`calendar-appt-${a.id}`}
-                  className={`rounded border px-2 py-1 text-[11px] ${STATUS_COLOR[a.status] || "bg-stone-100"}`}
+                  className={`rounded-lg border px-2 py-1.5 text-[11px] ${STATUS_COLOR[a.status] || "bg-zinc-800 text-zinc-200 border-zinc-700"}`}
                 >
-                  <div className="font-medium">{fmtTimeBlock(a.local_time_block)}</div>
+                  <div className="font-semibold">{fmtTimeBlock(a.local_time_block)}</div>
                   <div className="truncate">{a.customer?.full_name}</div>
-                  <div className="truncate opacity-70">{a.service_type}</div>
+                  <div className="truncate opacity-75">{a.service_type}</div>
                 </div>
               ))}
               {blk?.slots && Array.from(blk.slots).map((tb) => (
                 <div
                   key={tb}
                   data-testid={`calendar-blocked-slot-${ds}-${tb}`}
-                  className="rounded border border-dashed border-stone-300 px-2 py-1 text-[11px] text-stone-500 flex items-center gap-1"
+                  className="rounded-lg border border-dashed border-zinc-600 bg-zinc-950/60 px-2 py-1.5 text-[11px] text-zinc-400 flex items-center gap-1"
                 >
                   <Ban className="h-3 w-3" /> {fmtTimeBlock(tb)}
                 </div>
               ))}
               {appts.length === 0 && !blk && (
-                <div className="text-[11px] text-stone-400">—</div>
+                <div className="rounded-lg border border-dashed border-zinc-800 px-2 py-3 text-center text-[11px] text-zinc-600">No appointments</div>
               )}
             </div>
           </div>
@@ -355,7 +352,6 @@ function WeekView({ anchor, byDate, blocksByDate, business }) {
 
 function DayView({ date, appts, block, business }) {
   const av = business?.availability;
-  // Generate slot template for the day
   const slots = useMemo(() => {
     if (!av) return [];
     const out = [];
@@ -382,10 +378,10 @@ function DayView({ date, appts, block, business }) {
 
   if (block?.day) {
     return (
-      <div data-testid="calendar-day-view" className="text-center py-8">
-        <Ban className="h-8 w-8 text-stone-400 mx-auto mb-2" />
-        <p className="text-sm text-stone-600">This day is blocked.</p>
-        <p className="text-xs text-stone-400">{date}</p>
+      <div data-testid="calendar-day-view" className="text-center py-10 rounded-2xl border border-dashed border-zinc-700 bg-zinc-950/60">
+        <Ban className="h-8 w-8 text-zinc-400 mx-auto mb-2" />
+        <p className="text-sm text-zinc-300">This day is blocked.</p>
+        <p className="text-xs text-zinc-500">{date}</p>
       </div>
     );
   }
@@ -393,7 +389,7 @@ function DayView({ date, appts, block, business }) {
   return (
     <div data-testid="calendar-day-view" className="space-y-2">
       {slots.length === 0 && (
-        <p className="text-sm text-stone-500">No business hours configured.</p>
+        <p className="text-sm text-zinc-400">No business hours configured.</p>
       )}
       {slots.map((tb) => {
         const a = byTb[tb];
@@ -403,19 +399,19 @@ function DayView({ date, appts, block, business }) {
             <div
               key={tb}
               data-testid={`calendar-appt-${a.id}`}
-              className={`flex items-start gap-3 rounded-md border p-3 ${STATUS_COLOR[a.status] || "bg-white"}`}
+              className={`flex items-start gap-3 rounded-xl border p-3 ${STATUS_COLOR[a.status] || "bg-zinc-900 text-zinc-200 border-zinc-700"}`}
             >
               <div className="w-28 text-sm font-mono shrink-0">{fmtTimeBlock(tb)}</div>
-              <div className="flex-1">
-                <div className="font-medium text-sm">{a.customer?.full_name}</div>
-                <div className="text-xs opacity-80">
+              <div className="flex-1 min-w-0">
+                <div className="font-semibold text-sm truncate">{a.customer?.full_name}</div>
+                <div className="text-xs opacity-80 truncate">
                   {a.service_type} · {a.customer?.phone}
                 </div>
                 {a.description && (
                   <div className="text-xs opacity-70 mt-1 line-clamp-2">{a.description}</div>
                 )}
               </div>
-              <Badge variant="outline" className="text-[10px]">
+              <Badge variant="outline" className="text-[10px] border-current shrink-0">
                 {STATUS_LABEL[a.status] || a.status}
               </Badge>
             </div>
@@ -426,7 +422,7 @@ function DayView({ date, appts, block, business }) {
             <div
               key={tb}
               data-testid={`calendar-blocked-slot-${date}-${tb}`}
-              className="flex items-center gap-3 rounded-md border border-dashed border-stone-300 p-3 text-stone-500"
+              className="flex items-center gap-3 rounded-xl border border-dashed border-zinc-600 bg-zinc-950/60 p-3 text-zinc-400"
             >
               <div className="w-28 text-sm font-mono shrink-0">{fmtTimeBlock(tb)}</div>
               <Ban className="h-4 w-4" />
@@ -437,7 +433,7 @@ function DayView({ date, appts, block, business }) {
         return (
           <div
             key={tb}
-            className="flex items-center gap-3 rounded-md border border-stone-200 p-3 text-stone-400"
+            className="flex items-center gap-3 rounded-xl border border-zinc-800 bg-zinc-900/45 p-3 text-zinc-500"
           >
             <div className="w-28 text-sm font-mono shrink-0">{fmtTimeBlock(tb)}</div>
             <span className="text-sm">Available</span>
