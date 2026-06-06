@@ -59,7 +59,17 @@ function customerCardStyle(customer = {}) {
   const color = customerColorStyle(customer);
   return {
     borderColor: color.border,
-    boxShadow: `inset 4px 0 0 ${color["--customer-color"]}, 0 18px 45px rgba(0,0,0,0.22)`,
+    boxShadow: `0 18px 45px rgba(0,0,0,0.22), 0 0 32px ${color["--customer-color"]}22`,
+  };
+}
+
+function customerHeaderStyle(customer = {}) {
+  const color = customerColorStyle(customer);
+  return {
+    background: `linear-gradient(135deg, ${color["--customer-color"]}88 0%, ${color["--customer-color"]}55 52%, ${color["--customer-color"]}26 100%)`,
+    borderColor: color.border,
+    boxShadow: `inset 0 -1px 0 ${color.border}, 0 12px 28px ${color["--customer-color"]}18`,
+    color: "#f8fafc",
   };
 }
 
@@ -298,18 +308,25 @@ export default function AdminAppointments() {
       <div className="grid gap-3 md:hidden">
         {visibleItems.length ? (
           visibleItems.map((a) => (
-            <Card key={a.id} data-testid={ADMIN.apptRow(a.id)} style={customerCardStyle(a.customer)}>
-              <CardContent className="p-4 space-y-3">
+            <Card key={a.id} data-testid={ADMIN.apptRow(a.id)} className="overflow-hidden" style={customerCardStyle(a.customer)}>
+              <div className="px-4 py-4 border-b" style={customerHeaderStyle(a.customer)}>
                 <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <div className="font-semibold flex items-center gap-2"><CustomerColorDot customer={a.customer} /> {a.local_date}</div>
-                    <div className="text-sm text-stone-600">{fmtTimeBlock(a.local_time_block)}</div>
+                  <div className="min-w-0">
+                    <div className="font-bold text-xl flex items-center gap-2 tracking-tight">
+                      <CustomerColorDot customer={a.customer} className="h-3 w-3" />
+                      <span className="truncate">{a.local_date}</span>
+                    </div>
+                    <div className="mt-1 text-sm text-white/72">{fmtTimeBlock(a.local_time_block)}</div>
                   </div>
-                  <Badge data-testid={`admin-appt-status-${a.id}`} variant={statusVariant(a.status)}>{STATUS_LABEL[a.status] || a.status}</Badge>
+                  <Badge data-testid={`admin-appt-status-${a.id}`} variant={statusVariant(a.status)} className="shrink-0 shadow-lg">
+                    {STATUS_LABEL[a.status] || a.status}
+                  </Badge>
                 </div>
+              </div>
+              <CardContent className="p-4 space-y-3">
                 <div>
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="text-sm font-medium truncate">{a.customer?.full_name}</div>
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="text-base font-semibold truncate">{a.customer?.full_name}</div>
                     <CustomerPill customer={a.customer} />
                   </div>
                   <div className="text-xs text-stone-500 break-all">{a.customer?.email}</div>
