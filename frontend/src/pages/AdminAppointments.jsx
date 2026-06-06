@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { api, API, getToken } from "@/lib/api";
@@ -38,7 +38,6 @@ import { fmtTimeBlock } from "@/lib/dates";
 import { Download, Trash2, X } from "lucide-react";
 
 const STATUS_OPTIONS = ["pending", "confirmed", "completed", "no_show"];
-const ELIMINATED_STORAGE_KEY = "service-scheduler-eliminated-cancelled-appointments";
 const STATUS_LABEL = {
   pending: "Pending",
   confirmed: "Confirmed",
@@ -50,20 +49,6 @@ const STATUS_LABEL = {
 const cleanDescription = (description) => {
   if (!description || !description.trim()) return "No details provided.";
   return description.trim();
-};
-
-const readEliminatedIds = () => {
-  try {
-    const raw = window.localStorage.getItem(ELIMINATED_STORAGE_KEY);
-    const parsed = raw ? JSON.parse(raw) : [];
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
-};
-
-const saveEliminatedIds = (ids) => {
-  window.localStorage.setItem(ELIMINATED_STORAGE_KEY, JSON.stringify(ids));
 };
 
 function CustomerColorDot({ customer, className = "h-2.5 w-2.5" }) {
@@ -101,7 +86,6 @@ export default function AdminAppointments() {
     to: "",
     q: "",
   });
-  const [eliminatedIds, setEliminatedIds] = useState(() => readEliminatedIds());
 
   const bizQ = useQuery({
     queryKey: ["business"],
@@ -120,10 +104,7 @@ export default function AdminAppointments() {
     queryFn: async () => (await api.get("/admin/appointments", { params })).data,
   });
 
-  const visibleItems = useMemo(() => {
-    const hidden = new Set(eliminatedIds);
-    return (apptQ.data?.items || []).filter((a) => !(a.status === "cancelled" && hidden.has(a.id)));
-  }, [apptQ.data, eliminatedIds]);
+  const visibleItems = apptQ.data?.items || [];
 
   const cancel = useMutation({
     mutationFn: async ({ id, reason, keep_slot_blocked }) =>
@@ -133,6 +114,17 @@ export default function AdminAppointments() {
       qc.invalidateQueries({ queryKey: ["appointments"] });
     },
     onError: (e) => toast.error(e?.response?.data?.detail || "Cancel failed"),
+  });
+
+  const eliminate = useMutation({
+    mutationFn: async (id) => (await api.delete(`/admin/appointments/${id}`)).data,
+    onSuccess: () => {
+      toast.success("Cancelled appointment eliminated");
+      qc.invalidateQueries({ queryKey: ["appointments"] });
+      qc.invalidateQueries({ queryKey: ["calendar-appts"] });
+      setEliminateTarget(null);
+    },
+    onError: (e) => toast.error(e?.response?.data?.detail || "Eliminate failed"),
   });
 
   const updateStatus = useMutation({
@@ -164,12 +156,8 @@ export default function AdminAppointments() {
   };
 
   const submitEliminate = () => {
-    if (!eliminateTarget) return;
-    const next = Array.from(new Set([...eliminatedIds, eliminateTarget.id]));
-    saveEliminatedIds(next);
-    setEliminatedIds(next);
-    toast.success("Cancelled appointment eliminated from this list");
-    setEliminateTarget(null);
+    if (!eliminateTarget || eliminate.isPending) return;
+    eliminate.mutate(eliminateTarget.id);
   };
 
   const exportCsv = async () => {
@@ -409,8 +397,8 @@ export default function AdminAppointments() {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setEliminateTarget(null)}>Keep it</Button>
-            <Button variant="destructive" onClick={submitEliminate}><Trash2 className="h-4 w-4 mr-1" /> Eliminate</Button>
+            <Button variant="outline" onClick={() => setEliminateTarget(null)} disabled={eliminate.isPending}>Keep it</Button>
+            <Button variant="destructive" onClick={submitEliminate} disabled={eliminate.isPending}><Trash2 className="h-4 w-4 mr-1" /> {eliminate.isPending ? "Eliminating..." : "Eliminate"}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
