@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { api, API, getToken } from "@/lib/api";
 import { ADMIN } from "@/constants/testIds";
+import { customerColorStyle, customerDotStyle } from "@/lib/customerColor";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -49,6 +50,32 @@ const cleanDescription = (description) => {
   if (!description || !description.trim()) return "No details provided.";
   return description.trim();
 };
+
+function CustomerColorDot({ customer, className = "h-2.5 w-2.5" }) {
+  return <span className={`${className} rounded-full shrink-0`} style={customerDotStyle(customer)} />;
+}
+
+function customerCardStyle(customer = {}) {
+  const color = customerColorStyle(customer);
+  return {
+    borderColor: color.border,
+    boxShadow: `inset 4px 0 0 ${color["--customer-color"]}, 0 18px 45px rgba(0,0,0,0.22)`,
+  };
+}
+
+function CustomerPill({ customer }) {
+  const color = customerColorStyle(customer);
+  return (
+    <span
+      className="inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[10px] font-medium"
+      style={color}
+      title="Customer recognition color"
+    >
+      <CustomerColorDot customer={customer} className="h-1.5 w-1.5" />
+      Customer color
+    </span>
+  );
+}
 
 export default function AdminAppointments() {
   const qc = useQueryClient();
@@ -215,11 +242,13 @@ export default function AdminAppointments() {
       <div className="grid gap-3 md:hidden">
         {apptQ.data?.items?.length ? (
           apptQ.data.items.map((a) => (
-            <Card key={a.id} data-testid={ADMIN.apptRow(a.id)}>
+            <Card key={a.id} data-testid={ADMIN.apptRow(a.id)} style={customerCardStyle(a.customer)}>
               <CardContent className="p-4 space-y-3">
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <div className="font-semibold">{a.local_date}</div>
+                    <div className="font-semibold flex items-center gap-2">
+                      <CustomerColorDot customer={a.customer} /> {a.local_date}
+                    </div>
                     <div className="text-sm text-stone-600">{fmtTimeBlock(a.local_time_block)}</div>
                   </div>
                   <Badge data-testid={`admin-appt-status-${a.id}`} variant={statusVariant(a.status)}>
@@ -228,7 +257,10 @@ export default function AdminAppointments() {
                 </div>
 
                 <div>
-                  <div className="text-sm font-medium">{a.customer?.full_name}</div>
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="text-sm font-medium truncate">{a.customer?.full_name}</div>
+                    <CustomerPill customer={a.customer} />
+                  </div>
                   <div className="text-xs text-stone-500 break-all">{a.customer?.email}</div>
                   <div className="text-xs text-stone-500">{a.customer?.phone}</div>
                   <div className="text-xs text-stone-500">{a.service_type}</div>
@@ -313,14 +345,19 @@ export default function AdminAppointments() {
             <TableBody>
               {apptQ.data?.items?.length ? (
                 apptQ.data.items.map((a) => (
-                  <TableRow key={a.id} data-testid={ADMIN.apptRow(a.id)}>
+                  <TableRow key={a.id} data-testid={ADMIN.apptRow(a.id)} style={customerCardStyle(a.customer)}>
                     <TableCell>{a.local_date}</TableCell>
                     <TableCell>{fmtTimeBlock(a.local_time_block)}</TableCell>
                     <TableCell>{a.service_type}</TableCell>
                     <TableCell>
-                      <div className="font-medium">{a.customer?.full_name}</div>
-                      <div className="text-xs text-stone-500">{a.customer?.email}</div>
-                      <div className="text-xs text-stone-500">{a.customer?.phone}</div>
+                      <div className="flex items-center gap-2">
+                        <CustomerColorDot customer={a.customer} />
+                        <div>
+                          <div className="font-medium">{a.customer?.full_name}</div>
+                          <div className="text-xs text-stone-500">{a.customer?.email}</div>
+                          <div className="text-xs text-stone-500">{a.customer?.phone}</div>
+                        </div>
+                      </div>
                     </TableCell>
                     <TableCell className="max-w-[260px] whitespace-pre-wrap break-words text-sm text-stone-700">
                       {cleanDescription(a.description)}
@@ -330,6 +367,7 @@ export default function AdminAppointments() {
                         <Badge data-testid={`admin-appt-status-${a.id}`} variant={statusVariant(a.status)}>
                           {STATUS_LABEL[a.status] || a.status}
                         </Badge>
+                        <CustomerPill customer={a.customer} />
                         {a.needs_approval && a.status === "pending" && (
                           <Badge
                             data-testid={`admin-appt-needs-approval-${a.id}`}
