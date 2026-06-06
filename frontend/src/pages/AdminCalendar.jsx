@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { fmtTimeBlock, ymd } from "@/lib/dates";
+import { customerColorStyle, customerDotStyle } from "@/lib/customerColor";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -45,6 +46,18 @@ function monthRange(anchor) {
   const first = new Date(anchor.getFullYear(), anchor.getMonth(), 1);
   const last = new Date(anchor.getFullYear(), anchor.getMonth() + 1, 0);
   return { from: ymd(first), to: ymd(last), first, last };
+}
+
+function CustomerColorDot({ customer, className = "h-1.5 w-1.5" }) {
+  return <span className={`${className} rounded-full shrink-0`} style={customerDotStyle(customer)} />;
+}
+
+function customerAccentStyle(customer) {
+  const color = customerColorStyle(customer);
+  return {
+    ...color,
+    boxShadow: `inset 3px 0 0 ${color["--customer-color"]}, 0 10px 24px rgba(0,0,0,0.16)`,
+  };
 }
 
 export default function AdminCalendar() {
@@ -181,7 +194,6 @@ export default function AdminCalendar() {
               anchor={anchor}
               byDate={byDate}
               blocksByDate={blocksByDate}
-              business={bizQ.data}
             />
           )}
           {view === "day" && (
@@ -209,6 +221,9 @@ function Legend() {
       ))}
       <span className="inline-flex items-center gap-1.5 sm:ml-3 text-zinc-400">
         <Ban className="h-3 w-3" /> Blocked
+      </span>
+      <span className="inline-flex items-center gap-1.5 sm:ml-3 text-zinc-400">
+        <span className="h-2 w-2 rounded-full bg-[#d4af37]" /> Customer colors
       </span>
     </div>
   );
@@ -269,9 +284,11 @@ function MonthView({ anchor, byDate, blocksByDate, onPick }) {
                 {appts.slice(0, 3).map((a) => (
                   <div
                     key={a.id}
-                    className="flex items-center gap-1.5 rounded-md bg-zinc-950/70 px-1.5 py-1 text-[10px] text-zinc-300 truncate border border-zinc-800/80"
+                    className="flex items-center gap-1.5 rounded-md px-1.5 py-1 text-[10px] truncate border"
+                    style={customerColorStyle(a.customer)}
+                    title={`${a.customer?.full_name || "Customer"} · ${fmtTimeBlock(a.local_time_block)}`}
                   >
-                    <span className={`h-1.5 w-1.5 rounded-full shrink-0 ${STATUS_DOT[a.status] || "bg-zinc-400"}`} />
+                    <CustomerColorDot customer={a.customer} />
                     <span className="truncate">{a.local_time_block.split("-")[0]} · {a.customer?.full_name || "Customer"}</span>
                   </div>
                 ))}
@@ -323,9 +340,12 @@ function WeekView({ anchor, byDate, blocksByDate }) {
                 <div
                   key={a.id}
                   data-testid={`calendar-appt-${a.id}`}
-                  className={`rounded-lg border px-2 py-1.5 text-[11px] ${STATUS_COLOR[a.status] || "bg-zinc-800 text-zinc-200 border-zinc-700"}`}
+                  className={`rounded-lg border px-2 py-1.5 text-[11px] ${STATUS_COLOR[a.status] || ""}`}
+                  style={customerAccentStyle(a.customer)}
                 >
-                  <div className="font-semibold">{fmtTimeBlock(a.local_time_block)}</div>
+                  <div className="font-semibold flex items-center gap-1.5">
+                    <CustomerColorDot customer={a.customer} /> {fmtTimeBlock(a.local_time_block)}
+                  </div>
                   <div className="truncate">{a.customer?.full_name}</div>
                   <div className="truncate opacity-75">{a.service_type}</div>
                 </div>
@@ -399,9 +419,13 @@ function DayView({ date, appts, block, business }) {
             <div
               key={tb}
               data-testid={`calendar-appt-${a.id}`}
-              className={`flex items-start gap-3 rounded-xl border p-3 ${STATUS_COLOR[a.status] || "bg-zinc-900 text-zinc-200 border-zinc-700"}`}
+              className={`flex items-start gap-3 rounded-xl border p-3 ${STATUS_COLOR[a.status] || ""}`}
+              style={customerAccentStyle(a.customer)}
             >
-              <div className="w-28 text-sm font-mono shrink-0">{fmtTimeBlock(tb)}</div>
+              <div className="w-28 text-sm font-mono shrink-0 flex items-center gap-2">
+                <CustomerColorDot customer={a.customer} className="h-2.5 w-2.5" />
+                {fmtTimeBlock(tb)}
+              </div>
               <div className="flex-1 min-w-0">
                 <div className="font-semibold text-sm truncate">{a.customer?.full_name}</div>
                 <div className="text-xs opacity-80 truncate">
