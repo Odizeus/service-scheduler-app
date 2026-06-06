@@ -220,3 +220,129 @@
 .App.dark ::selection {
     background: rgba(212, 175, 55, 0.35);
 }
+
+/* Public booking, confirmation, and customer portal polish */
+.App.dark [data-testid="booking-page"],
+.App.dark [data-testid="portal-page"],
+.App.dark .min-h-screen.bg-stone-50 {
+    background:
+        radial-gradient(circle at top right, rgba(212, 175, 55, 0.1), transparent 28rem),
+        radial-gradient(circle at bottom left, rgba(113, 113, 122, 0.12), transparent 26rem),
+        linear-gradient(135deg, #09090b 0%, #111113 48%, #18181b 100%) !important;
+}
+
+.App.dark [data-testid="booking-page"] header,
+.App.dark [data-testid="portal-page"] header {
+    border-color: rgba(212, 175, 55, 0.18) !important;
+    box-shadow: 0 18px 45px rgba(0, 0, 0, 0.28);
+}
+
+.App.dark [data-testid="booking-page"] h1,
+.App.dark [data-testid="portal-page"] h1 {
+    color: #f8fafc !important;
+    letter-spacing: -0.035em;
+}
+
+.App.dark [data-testid="booking-page"] main > .bg-white,
+.App.dark [data-testid="portal-page"] main > .bg-white,
+.App.dark [data-testid="booking-confirmation"],
+.App.dark [data-testid="portal-details-card"],
+.App.dark [data-testid="portal-reschedule-card"] {
+    background: linear-gradient(180deg, rgba(32, 32, 36, 0.98), rgba(24, 24, 27, 0.98)) !important;
+    border-color: rgba(212, 175, 55, 0.18) !important;
+    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.34) !important;
+}
+
+.App.dark [data-testid="booking-calendar"] .grid.grid-cols-7.gap-1 > button,
+.App.dark [data-testid="portal-reschedule-card"] .grid.grid-cols-7.gap-1 > button {
+    min-height: 2.75rem;
+    border-radius: 0.75rem !important;
+    background-color: rgba(39, 39, 42, 0.76) !important;
+    border-color: #3f3f46 !important;
+    color: #e4e4e7 !important;
+}
+
+.App.dark [data-testid="booking-calendar"] .grid.grid-cols-7.gap-1 > button:hover:not(:disabled),
+.App.dark [data-testid="portal-reschedule-card"] .grid.grid-cols-7.gap-1 > button:hover:not(:disabled) {
+    border-color: #d4af37 !important;
+    background-color: rgba(63, 63, 70, 0.88) !important;
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.26);
+}
+
+.App.dark [data-testid="booking-calendar"] .grid.grid-cols-7.gap-1 > button.bg-stone-900,
+.App.dark [data-testid="portal-reschedule-card"] .grid.grid-cols-7.gap-1 > button.bg-stone-900 {
+    background-color: #d4af37 !important;
+    border-color: #d4af37 !important;
+    color: #111113 !important;
+    font-weight: 700;
+}
+
+.App.dark [data-testid="booking-calendar"] .grid.grid-cols-7.gap-1 > button:disabled,
+.App.dark [data-testid="portal-reschedule-card"] .grid.grid-cols-7.gap-1 > button:disabled {
+    background-color: rgba(24, 24, 27, 0.62) !important;
+    border-color: #27272a !important;
+    color: #52525b !important;
+    opacity: 0.72;
+}
+
+.App.dark [data-testid="booking-service-area-notice"],
+.App.dark [data-testid="booking-page"] .rounded-md.bg-stone-50,
+.App.dark [data-testid="portal-page"] .rounded-md.bg-stone-50 {
+    background-color: rgba(212, 175, 55, 0.08) !important;
+    border-color: rgba(212, 175, 55, 0.24) !important;
+    color: #d4d4d8 !important;
+}
+
+.App.dark [data-testid="booking-page"] label,
+.App.dark [data-testid="portal-page"] label,
+.App.dark [data-testid="booking-confirmation"] span:first-child,
+.App.dark [data-testid="portal-details-card"] span:first-child {
+    color: #c4c4cc !important;
+}
+
+.App.dark [data-testid="booking-page"] input,
+.App.dark [data-testid="booking-page"] textarea,
+.App.dark [data-testid="booking-page"] [role="combobox"],
+.App.dark [data-testid="portal-page"] textarea,
+.App.dark [data-testid="portal-page"] [role="combobox"] {
+    border-radius: 0.75rem !important;
+    background-color: rgba(9, 9, 11, 0.72) !important;
+    border-color: #3f3f46 !important;
+}
+
+.App.dark [data-testid="booking-page"] button[data-testid^="booking-slot-"],
+.App.dark [data-testid="portal-page"] button[data-testid^="portal-slot-"] {
+    border-radius: 0.75rem;
+    min-height: 2.5rem;
+}
+
+.App.dark [data-testid="booking-submit"],
+.App.dark [data-testid="portal-reschedule-confirm"] {
+    min-height: 2.75rem;
+    border-radius: 0.9rem;
+    font-weight: 700;
+    box-shadow: 0 14px 35px rgba(212, 175, 55, 0.18);
+}
+
+.App.dark [data-testid="booking-confirmation"] svg.text-emerald-600,
+.App.dark [data-testid="portal-page"] svg.text-emerald-600 {
+    color: #6ee7b7 !important;
+    filter: drop-shadow(0 0 12px rgba(110, 231, 183, 0.22));
+}
+
+.App.dark [data-testid="booking-confirmation"] a button,
+.App.dark [data-testid="portal-page"] button {
+    border-radius: 0.85rem;
+}
+
+.App.dark [data-testid="portal-details-card"] .border-t {
+    border-color: rgba(212, 175, 55, 0.18) !important;
+}
+
+.App.dark [data-testid="portal-status-badge"] {
+    box-shadow: 0 10px 26px rgba(0, 0, 0, 0.24);
+}
+
+.App.dark [data-testid="portal-page"] [role="dialog"] textarea {
+    background-color: #111113 !important;
+}
