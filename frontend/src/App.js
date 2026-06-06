@@ -1,6 +1,7 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { Toaster } from "sonner";
 import "@/App.css";
+import "@/mobile-fixes.css";
 import BookingPage from "@/pages/BookingPage";
 import ConfirmationPage from "@/pages/ConfirmationPage";
 import CustomerPortal from "@/pages/CustomerPortal";
