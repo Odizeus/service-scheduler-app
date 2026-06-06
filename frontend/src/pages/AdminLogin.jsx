@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { api, setToken } from "@/lib/api";
 import { ADMIN } from "@/constants/testIds";
@@ -16,12 +16,27 @@ export default function AdminLogin() {
 
   const submit = async (e) => {
     e.preventDefault();
+
+    const cleanEmail = email.trim();
+    if (!cleanEmail || !password) {
+      toast.error("Enter your email and password.");
+      return;
+    }
+
+    if (!/.+@.+\..+/.test(cleanEmail)) {
+      toast.error("Enter a valid email address.");
+      return;
+    }
+
     setLoading(true);
     try {
-      const { data } = await api.post("/admin/auth/login", { email, password });
+      const { data } = await api.post("/admin/auth/login", {
+        email: cleanEmail,
+        password,
+      });
       setToken(data.access_token);
       toast.success(`Welcome, ${data.user.email}`);
-      navigate("/admin/appointments");
+      navigate("/admin/appointments", { replace: true });
     } catch (err) {
       toast.error(err?.response?.data?.detail || "Login failed");
     } finally {
@@ -45,6 +60,7 @@ export default function AdminLogin() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 autoComplete="username"
+                required
               />
             </div>
             <div className="space-y-2">
@@ -55,10 +71,14 @@ export default function AdminLogin() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 autoComplete="current-password"
+                required
               />
             </div>
             <Button data-testid={ADMIN.loginSubmit} type="submit" className="w-full" disabled={loading}>
               {loading ? "Signing in..." : "Sign in"}
+            </Button>
+            <Button asChild type="button" variant="ghost" className="w-full">
+              <Link to="/">Back to booking page</Link>
             </Button>
           </form>
         </CardContent>
