@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { api, API, getToken } from "@/lib/api";
@@ -35,9 +35,10 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { fmtTimeBlock } from "@/lib/dates";
-import { Download, X } from "lucide-react";
+import { Download, Trash2, X } from "lucide-react";
 
 const STATUS_OPTIONS = ["pending", "confirmed", "completed", "no_show"];
+const ELIMINATED_STORAGE_KEY = "service-scheduler-eliminated-cancelled-appointments";
 const STATUS_LABEL = {
   pending: "Pending",
   confirmed: "Confirmed",
@@ -49,6 +50,20 @@ const STATUS_LABEL = {
 const cleanDescription = (description) => {
   if (!description || !description.trim()) return "No details provided.";
   return description.trim();
+};
+
+const readEliminatedIds = () => {
+  try {
+    const raw = window.localStorage.getItem(ELIMINATED_STORAGE_KEY);
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+};
+
+const saveEliminatedIds = (ids) => {
+  window.localStorage.setItem(ELIMINATED_STORAGE_KEY, JSON.stringify(ids));
 };
 
 function CustomerColorDot({ customer, className = "h-2.5 w-2.5" }) {
@@ -86,6 +101,7 @@ export default function AdminAppointments() {
     to: "",
     q: "",
   });
+  const [eliminatedIds, setEliminatedIds] = useState(() => readEliminatedIds());
 
   const bizQ = useQuery({
     queryKey: ["business"],
@@ -103,6 +119,11 @@ export default function AdminAppointments() {
     queryKey: ["appointments", params],
     queryFn: async () => (await api.get("/admin/appointments", { params })).data,
   });
+
+  const visibleItems = useMemo(() => {
+    const hidden = new Set(eliminatedIds);
+    return (apptQ.data?.items || []).filter((a) => !(a.status === "cancelled" && hidden.has(a.id)));
+  }, [apptQ.data, eliminatedIds]);
 
   const cancel = useMutation({
     mutationFn: async ({ id, reason, keep_slot_blocked }) =>
@@ -127,16 +148,28 @@ export default function AdminAppointments() {
   const [cancelTarget, setCancelTarget] = useState(null);
   const [cancelReason, setCancelReason] = useState("");
   const [keepSlotBlocked, setKeepSlotBlocked] = useState(false);
+  const [eliminateTarget, setEliminateTarget] = useState(null);
+
   const openCancel = (appt) => {
     setCancelTarget(appt);
     setCancelReason("");
     setKeepSlotBlocked(false);
   };
+
   const submitCancel = () => {
     cancel.mutate(
       { id: cancelTarget.id, reason: cancelReason, keep_slot_blocked: keepSlotBlocked },
       { onSuccess: () => setCancelTarget(null) }
     );
+  };
+
+  const submitEliminate = () => {
+    if (!eliminateTarget) return;
+    const next = Array.from(new Set([...eliminatedIds, eliminateTarget.id]));
+    saveEliminatedIds(next);
+    setEliminatedIds(next);
+    toast.success("Cancelled appointment eliminated from this list");
+    setEliminateTarget(null);
   };
 
   const exportCsv = async () => {
@@ -175,6 +208,32 @@ export default function AdminAppointments() {
       ? "outline"
       : "secondary";
 
+  const AppointmentActions = ({ a, mobile = false }) => (
+    <>
+      {a.status === "cancelled" ? (
+        <Button
+          data-testid={`admin-appt-eliminate-${a.id}`}
+          variant="destructive"
+          size="sm"
+          onClick={() => setEliminateTarget(a)}
+          className={mobile ? "w-full touch-manipulation" : ""}
+        >
+          <Trash2 className="h-4 w-4 mr-1" /> Eliminate
+        </Button>
+      ) : (
+        <Button
+          data-testid={ADMIN.apptCancelBtn(a.id)}
+          variant={mobile ? "outline" : "ghost"}
+          size="sm"
+          onClick={() => openCancel(a)}
+          className={mobile ? "w-full touch-manipulation" : ""}
+        >
+          <X className="h-4 w-4 mr-1" /> Cancel
+        </Button>
+      )}
+    </>
+  );
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -189,10 +248,7 @@ export default function AdminAppointments() {
         <CardContent className="grid grid-cols-1 md:grid-cols-5 gap-3">
           <div>
             <Label className="text-xs">Status</Label>
-            <Select
-              value={filters.status}
-              onValueChange={(v) => setFilters({ ...filters, status: v })}
-            >
+            <Select value={filters.status} onValueChange={(v) => setFilters({ ...filters, status: v })}>
               <SelectTrigger data-testid={ADMIN.apptStatusFilter}><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All</SelectItem>
@@ -206,56 +262,41 @@ export default function AdminAppointments() {
           </div>
           <div>
             <Label className="text-xs">Service</Label>
-            <Select
-              value={filters.service_type}
-              onValueChange={(v) => setFilters({ ...filters, service_type: v })}
-            >
+            <Select value={filters.service_type} onValueChange={(v) => setFilters({ ...filters, service_type: v })}>
               <SelectTrigger data-testid={ADMIN.apptServiceFilter}><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All</SelectItem>
-                {bizQ.data?.service_types?.map((st) => (
-                  <SelectItem key={st} value={st}>{st}</SelectItem>
-                ))}
+                {bizQ.data?.service_types?.map((st) => <SelectItem key={st} value={st}>{st}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>
           <div>
             <Label className="text-xs">From</Label>
-            <Input data-testid={ADMIN.apptFromDate} type="date"
-              value={filters.from} onChange={(e) => setFilters({ ...filters, from: e.target.value })} />
+            <Input data-testid={ADMIN.apptFromDate} type="date" value={filters.from} onChange={(e) => setFilters({ ...filters, from: e.target.value })} />
           </div>
           <div>
             <Label className="text-xs">To</Label>
-            <Input data-testid={ADMIN.apptToDate} type="date"
-              value={filters.to} onChange={(e) => setFilters({ ...filters, to: e.target.value })} />
+            <Input data-testid={ADMIN.apptToDate} type="date" value={filters.to} onChange={(e) => setFilters({ ...filters, to: e.target.value })} />
           </div>
           <div>
             <Label className="text-xs">Search</Label>
-            <Input data-testid={ADMIN.apptSearch}
-              placeholder="Name, email, phone, code"
-              value={filters.q}
-              onChange={(e) => setFilters({ ...filters, q: e.target.value })} />
+            <Input data-testid={ADMIN.apptSearch} placeholder="Name, email, phone, code" value={filters.q} onChange={(e) => setFilters({ ...filters, q: e.target.value })} />
           </div>
         </CardContent>
       </Card>
 
       <div className="grid gap-3 md:hidden">
-        {apptQ.data?.items?.length ? (
-          apptQ.data.items.map((a) => (
+        {visibleItems.length ? (
+          visibleItems.map((a) => (
             <Card key={a.id} data-testid={ADMIN.apptRow(a.id)} style={customerCardStyle(a.customer)}>
               <CardContent className="p-4 space-y-3">
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <div className="font-semibold flex items-center gap-2">
-                      <CustomerColorDot customer={a.customer} /> {a.local_date}
-                    </div>
+                    <div className="font-semibold flex items-center gap-2"><CustomerColorDot customer={a.customer} /> {a.local_date}</div>
                     <div className="text-sm text-stone-600">{fmtTimeBlock(a.local_time_block)}</div>
                   </div>
-                  <Badge data-testid={`admin-appt-status-${a.id}`} variant={statusVariant(a.status)}>
-                    {STATUS_LABEL[a.status] || a.status}
-                  </Badge>
+                  <Badge data-testid={`admin-appt-status-${a.id}`} variant={statusVariant(a.status)}>{STATUS_LABEL[a.status] || a.status}</Badge>
                 </div>
-
                 <div>
                   <div className="flex items-center justify-between gap-2">
                     <div className="text-sm font-medium truncate">{a.customer?.full_name}</div>
@@ -266,64 +307,25 @@ export default function AdminAppointments() {
                   <div className="text-xs text-stone-500">{a.service_type}</div>
                   <div className="text-xs font-mono text-stone-500">{a.confirmation_code}</div>
                 </div>
-
                 <div className="rounded-md border bg-stone-50 p-3">
                   <div className="text-[11px] font-semibold uppercase tracking-wide text-stone-500">Details</div>
-                  <div className="mt-1 whitespace-pre-wrap break-words text-sm text-stone-700">
-                    {cleanDescription(a.description)}
-                  </div>
+                  <div className="mt-1 whitespace-pre-wrap break-words text-sm text-stone-700">{cleanDescription(a.description)}</div>
                 </div>
-
                 {a.needs_approval && a.status === "pending" && (
-                  <Badge
-                    data-testid={`admin-appt-needs-approval-${a.id}`}
-                    variant="outline"
-                    className="border-amber-300 bg-amber-50 text-amber-800 text-[10px]"
-                  >
-                    Needs approval
-                  </Badge>
+                  <Badge data-testid={`admin-appt-needs-approval-${a.id}`} variant="outline" className="border-amber-300 bg-amber-50 text-amber-800 text-[10px]">Needs approval</Badge>
                 )}
-
                 <div className="flex flex-col gap-2">
-                  <Select
-                    value={a.status === "cancelled" ? "" : a.status}
-                    onValueChange={(v) => v && updateStatus.mutate({ id: a.id, status: v })}
-                    disabled={a.status === "cancelled"}
-                  >
-                    <SelectTrigger
-                      data-testid={`admin-appt-status-select-${a.id}`}
-                      className="h-10 w-full"
-                    >
-                      <SelectValue placeholder="Set status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {STATUS_OPTIONS.map((s) => (
-                        <SelectItem key={s} value={s}>{STATUS_LABEL[s]}</SelectItem>
-                      ))}
-                    </SelectContent>
+                  <Select value={a.status === "cancelled" ? "" : a.status} onValueChange={(v) => v && updateStatus.mutate({ id: a.id, status: v })} disabled={a.status === "cancelled"}>
+                    <SelectTrigger data-testid={`admin-appt-status-select-${a.id}`} className="h-10 w-full"><SelectValue placeholder="Set status" /></SelectTrigger>
+                    <SelectContent>{STATUS_OPTIONS.map((s) => <SelectItem key={s} value={s}>{STATUS_LABEL[s]}</SelectItem>)}</SelectContent>
                   </Select>
-
-                  {a.status !== "cancelled" && (
-                    <Button
-                      data-testid={ADMIN.apptCancelBtn(a.id)}
-                      variant="outline"
-                      size="sm"
-                      onClick={() => openCancel(a)}
-                      className="w-full touch-manipulation"
-                    >
-                      <X className="h-4 w-4 mr-1" /> Cancel
-                    </Button>
-                  )}
+                  <AppointmentActions a={a} mobile />
                 </div>
               </CardContent>
             </Card>
           ))
         ) : (
-          <Card>
-            <CardContent className="text-center text-stone-500 py-8">
-              {apptQ.isLoading ? "Loading..." : "No appointments match the filters."}
-            </CardContent>
-          </Card>
+          <Card><CardContent className="text-center text-stone-500 py-8">{apptQ.isLoading ? "Loading..." : "No appointments match the filters."}</CardContent></Card>
         )}
       </div>
 
@@ -332,93 +334,35 @@ export default function AdminAppointments() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Date</TableHead>
-                <TableHead>Time</TableHead>
-                <TableHead>Service</TableHead>
-                <TableHead>Customer</TableHead>
-                <TableHead>Details</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Code</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead>Date</TableHead><TableHead>Time</TableHead><TableHead>Service</TableHead><TableHead>Customer</TableHead><TableHead>Details</TableHead><TableHead>Status</TableHead><TableHead>Code</TableHead><TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {apptQ.data?.items?.length ? (
-                apptQ.data.items.map((a) => (
-                  <TableRow key={a.id} data-testid={ADMIN.apptRow(a.id)} style={customerCardStyle(a.customer)}>
-                    <TableCell>{a.local_date}</TableCell>
-                    <TableCell>{fmtTimeBlock(a.local_time_block)}</TableCell>
-                    <TableCell>{a.service_type}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <CustomerColorDot customer={a.customer} />
-                        <div>
-                          <div className="font-medium">{a.customer?.full_name}</div>
-                          <div className="text-xs text-stone-500">{a.customer?.email}</div>
-                          <div className="text-xs text-stone-500">{a.customer?.phone}</div>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell className="max-w-[260px] whitespace-pre-wrap break-words text-sm text-stone-700">
-                      {cleanDescription(a.description)}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Badge data-testid={`admin-appt-status-${a.id}`} variant={statusVariant(a.status)}>
-                          {STATUS_LABEL[a.status] || a.status}
-                        </Badge>
-                        <CustomerPill customer={a.customer} />
-                        {a.needs_approval && a.status === "pending" && (
-                          <Badge
-                            data-testid={`admin-appt-needs-approval-${a.id}`}
-                            variant="outline"
-                            className="border-amber-300 bg-amber-50 text-amber-800 text-[10px]"
-                          >
-                            Needs approval
-                          </Badge>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell className="font-mono text-xs">{a.confirmation_code}</TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <Select
-                          value={a.status === "cancelled" ? "" : a.status}
-                          onValueChange={(v) => v && updateStatus.mutate({ id: a.id, status: v })}
-                          disabled={a.status === "cancelled"}
-                        >
-                          <SelectTrigger
-                            data-testid={`admin-appt-status-select-${a.id}`}
-                            className="h-8 w-[130px]"
-                          >
-                            <SelectValue placeholder="Set status" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {STATUS_OPTIONS.map((s) => (
-                              <SelectItem key={s} value={s}>{STATUS_LABEL[s]}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        {a.status !== "cancelled" && (
-                          <Button
-                            data-testid={ADMIN.apptCancelBtn(a.id)}
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => openCancel(a)}
-                          >
-                            <X className="h-4 w-4 mr-1" /> Cancel
-                          </Button>
-                        )}
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={8} className="text-center text-stone-500 py-8">
-                    {apptQ.isLoading ? "Loading..." : "No appointments match the filters."}
+              {visibleItems.length ? visibleItems.map((a) => (
+                <TableRow key={a.id} data-testid={ADMIN.apptRow(a.id)} style={customerCardStyle(a.customer)}>
+                  <TableCell>{a.local_date}</TableCell>
+                  <TableCell>{fmtTimeBlock(a.local_time_block)}</TableCell>
+                  <TableCell>{a.service_type}</TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2"><CustomerColorDot customer={a.customer} /><div><div className="font-medium">{a.customer?.full_name}</div><div className="text-xs text-stone-500">{a.customer?.email}</div><div className="text-xs text-stone-500">{a.customer?.phone}</div></div></div>
+                  </TableCell>
+                  <TableCell className="max-w-[260px] whitespace-pre-wrap break-words text-sm text-stone-700">{cleanDescription(a.description)}</TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2"><Badge data-testid={`admin-appt-status-${a.id}`} variant={statusVariant(a.status)}>{STATUS_LABEL[a.status] || a.status}</Badge><CustomerPill customer={a.customer} />{a.needs_approval && a.status === "pending" && <Badge data-testid={`admin-appt-needs-approval-${a.id}`} variant="outline" className="border-amber-300 bg-amber-50 text-amber-800 text-[10px]">Needs approval</Badge>}</div>
+                  </TableCell>
+                  <TableCell className="font-mono text-xs">{a.confirmation_code}</TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex items-center justify-end gap-2">
+                      <Select value={a.status === "cancelled" ? "" : a.status} onValueChange={(v) => v && updateStatus.mutate({ id: a.id, status: v })} disabled={a.status === "cancelled"}>
+                        <SelectTrigger data-testid={`admin-appt-status-select-${a.id}`} className="h-8 w-[130px]"><SelectValue placeholder="Set status" /></SelectTrigger>
+                        <SelectContent>{STATUS_OPTIONS.map((s) => <SelectItem key={s} value={s}>{STATUS_LABEL[s]}</SelectItem>)}</SelectContent>
+                      </Select>
+                      <AppointmentActions a={a} />
+                    </div>
                   </TableCell>
                 </TableRow>
+              )) : (
+                <TableRow><TableCell colSpan={8} className="text-center text-stone-500 py-8">{apptQ.isLoading ? "Loading..." : "No appointments match the filters."}</TableCell></TableRow>
               )}
             </TableBody>
           </Table>
@@ -429,53 +373,28 @@ export default function AdminAppointments() {
         <DialogContent data-testid="admin-cancel-dialog">
           <DialogHeader>
             <DialogTitle>Cancel appointment</DialogTitle>
-            <DialogDescription>
-              {cancelTarget && (
-                <>
-                  {cancelTarget.customer?.full_name} · {cancelTarget.local_date} ·{" "}
-                  {fmtTimeBlock(cancelTarget.local_time_block)}
-                </>
-              )}
-            </DialogDescription>
+            <DialogDescription>{cancelTarget && <>{cancelTarget.customer?.full_name} · {cancelTarget.local_date} · {fmtTimeBlock(cancelTarget.local_time_block)}</>}</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
-            <div>
-              <Label className="text-xs">Reason (sent to customer)</Label>
-              <Textarea
-                data-testid="admin-cancel-reason"
-                rows={3}
-                value={cancelReason}
-                onChange={(e) => setCancelReason(e.target.value)}
-                placeholder="e.g. Crew unavailable due to emergency"
-              />
-            </div>
-            <label className="flex items-start gap-2 text-sm">
-              <Checkbox
-                data-testid="admin-cancel-keep-blocked"
-                checked={keepSlotBlocked}
-                onCheckedChange={(v) => setKeepSlotBlocked(!!v)}
-              />
-              <span>
-                Keep this time slot blocked (don't reopen for new bookings).
-                <br />
-                <span className="text-stone-500 text-xs">
-                  Leave unchecked to make the slot available again.
-                </span>
-              </span>
-            </label>
+            <div><Label className="text-xs">Reason (sent to customer)</Label><Textarea data-testid="admin-cancel-reason" rows={3} value={cancelReason} onChange={(e) => setCancelReason(e.target.value)} placeholder="e.g. Crew unavailable due to emergency" /></div>
+            <label className="flex items-start gap-2 text-sm"><Checkbox data-testid="admin-cancel-keep-blocked" checked={keepSlotBlocked} onCheckedChange={(v) => setKeepSlotBlocked(!!v)} /><span>Keep this time slot blocked (don't reopen for new bookings).<br /><span className="text-stone-500 text-xs">Leave unchecked to make the slot available again.</span></span></label>
           </div>
+          <DialogFooter><Button variant="outline" onClick={() => setCancelTarget(null)}>Keep it</Button><Button data-testid={ADMIN.apptCancelConfirm} variant="destructive" disabled={cancel.isPending} onClick={submitCancel}>{cancel.isPending ? "Cancelling..." : "Cancel appointment"}</Button></DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!eliminateTarget} onOpenChange={(o) => !o && setEliminateTarget(null)}>
+        <DialogContent data-testid="admin-eliminate-dialog">
+          <DialogHeader>
+            <DialogTitle>Eliminate cancelled appointment?</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to eliminate it from the list?
+              {eliminateTarget && <span className="block mt-2">{eliminateTarget.customer?.full_name} · {eliminateTarget.local_date} · {fmtTimeBlock(eliminateTarget.local_time_block)}</span>}
+            </DialogDescription>
+          </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setCancelTarget(null)}>
-              Keep it
-            </Button>
-            <Button
-              data-testid={ADMIN.apptCancelConfirm}
-              variant="destructive"
-              disabled={cancel.isPending}
-              onClick={submitCancel}
-            >
-              {cancel.isPending ? "Cancelling..." : "Cancel appointment"}
-            </Button>
+            <Button variant="outline" onClick={() => setEliminateTarget(null)}>Keep it</Button>
+            <Button variant="destructive" onClick={submitEliminate}><Trash2 className="h-4 w-4 mr-1" /> Eliminate</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
