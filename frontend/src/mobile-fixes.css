@@ -12,33 +12,39 @@
     }
 
     /* Cancelled appointment eliminate button in mobile cards.
-       Keep it readable and centered, but smaller than the previous large square. */
+       Use clear text on mobile so the destructive action is obvious and accessible. */
     .App.dark .md\:hidden button[data-testid^="admin-appt-eliminate-"] {
-        width: 2.65rem !important;
-        min-width: 2.65rem !important;
-        height: 2.65rem !important;
-        padding: 0 !important;
+        width: 100% !important;
+        min-width: 100% !important;
+        min-height: 2.75rem !important;
+        height: 2.75rem !important;
+        padding: 0 1rem !important;
         display: inline-flex !important;
         align-items: center !important;
         justify-content: center !important;
-        border-radius: 0.78rem !important;
-        font-size: 0 !important;
+        border-radius: 0.85rem !important;
+        font-size: 0.95rem !important;
         line-height: 1 !important;
-        box-shadow: 0 10px 26px rgba(127, 29, 29, 0.22) !important;
+        font-weight: 700 !important;
+        box-shadow: 0 10px 26px rgba(127, 29, 29, 0.2) !important;
+    }
+
+    .App.dark .md\:hidden button[data-testid^="admin-appt-eliminate-"]::after {
+        content: " Appointment";
     }
 
     .App.dark .md\:hidden button[data-testid^="admin-appt-eliminate-"] svg {
         width: 1.05rem !important;
         height: 1.05rem !important;
-        margin: 0 !important;
+        margin-right: 0.45rem !important;
         flex-shrink: 0 !important;
         stroke-width: 2.25 !important;
     }
 
     /* Active mobile cancel buttons should remain full-width text buttons. */
     .App.dark .md\:hidden button[data-testid^="admin-appt-cancel-"] {
-        min-height: 2.65rem !important;
-        border-radius: 0.78rem !important;
+        min-height: 2.75rem !important;
+        border-radius: 0.85rem !important;
     }
 
     /* Month calendar: compact appointment indicators for narrow screens. */
@@ -124,10 +130,10 @@
 
 @media (max-width: 380px) {
     .App.dark .md\:hidden button[data-testid^="admin-appt-eliminate-"] {
-        width: 2.45rem !important;
-        min-width: 2.45rem !important;
-        height: 2.45rem !important;
-        border-radius: 0.72rem !important;
+        min-height: 2.55rem !important;
+        height: 2.55rem !important;
+        font-size: 0.88rem !important;
+        border-radius: 0.78rem !important;
     }
 
     .App.dark .md\:hidden button[data-testid^="admin-appt-eliminate-"] svg {
