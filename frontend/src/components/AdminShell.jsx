@@ -1,6 +1,6 @@
 import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { api, getToken, logoutAdmin } from "@/lib/api";
+import { api, getToken, logoutAdmin, DEFAULT_SLUG } from "@/lib/api";
 import { ADMIN } from "@/constants/testIds";
 import { Button } from "@/components/ui/button";
 import {
@@ -77,7 +77,7 @@ export default function AdminShell() {
 
   const logout = async () => {
     await logoutAdmin();
-    navigate("/admin/login", { replace: true });
+    navigate(`/book/${meQ.data?.business?.slug || DEFAULT_SLUG}`, { replace: true });
   };
 
   const linkCls = ({ isActive }) =>
