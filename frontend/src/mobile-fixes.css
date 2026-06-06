@@ -12,26 +12,33 @@
     }
 
     /* Cancelled appointment eliminate button in mobile cards.
-       The desktop table overflow CSS makes this icon-only; mobile cards need a
-       centered square action that does not look visually off. */
-    .App.dark button[data-testid^="admin-appt-eliminate-"] {
-        width: 3rem !important;
-        min-width: 3rem !important;
-        height: 3rem !important;
+       Keep it readable and centered, but smaller than the previous large square. */
+    .App.dark .md\:hidden button[data-testid^="admin-appt-eliminate-"] {
+        width: 2.65rem !important;
+        min-width: 2.65rem !important;
+        height: 2.65rem !important;
         padding: 0 !important;
         display: inline-flex !important;
         align-items: center !important;
         justify-content: center !important;
-        border-radius: 0.85rem !important;
+        border-radius: 0.78rem !important;
         font-size: 0 !important;
         line-height: 1 !important;
+        box-shadow: 0 10px 26px rgba(127, 29, 29, 0.22) !important;
     }
 
-    .App.dark button[data-testid^="admin-appt-eliminate-"] svg {
-        width: 1.25rem !important;
-        height: 1.25rem !important;
+    .App.dark .md\:hidden button[data-testid^="admin-appt-eliminate-"] svg {
+        width: 1.05rem !important;
+        height: 1.05rem !important;
         margin: 0 !important;
         flex-shrink: 0 !important;
+        stroke-width: 2.25 !important;
+    }
+
+    /* Active mobile cancel buttons should remain full-width text buttons. */
+    .App.dark .md\:hidden button[data-testid^="admin-appt-cancel-"] {
+        min-height: 2.65rem !important;
+        border-radius: 0.78rem !important;
     }
 
     /* Month calendar: compact appointment indicators for narrow screens. */
@@ -116,6 +123,18 @@
 }
 
 @media (max-width: 380px) {
+    .App.dark .md\:hidden button[data-testid^="admin-appt-eliminate-"] {
+        width: 2.45rem !important;
+        min-width: 2.45rem !important;
+        height: 2.45rem !important;
+        border-radius: 0.72rem !important;
+    }
+
+    .App.dark .md\:hidden button[data-testid^="admin-appt-eliminate-"] svg {
+        width: 0.98rem !important;
+        height: 0.98rem !important;
+    }
+
     .App.dark [data-testid="calendar-dashboard"] [data-testid^="calendar-month-day-"] {
         min-height: 4.25rem !important;
         border-radius: 0.78rem !important;
