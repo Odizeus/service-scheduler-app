@@ -82,14 +82,14 @@ export default function AdminShell() {
 
   const linkCls = ({ isActive }) =>
     [
-      "flex items-center gap-2 px-3 py-2 rounded-md text-sm transition",
+      "group flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 border",
       isActive
-        ? "bg-stone-900 text-white"
-        : "text-stone-700 hover:bg-stone-100",
+        ? "bg-[#d4af37] text-zinc-950 border-[#d4af37] shadow-[0_10px_30px_rgba(212,175,55,0.22)]"
+        : "text-zinc-300 border-transparent hover:bg-zinc-800/80 hover:text-white hover:border-zinc-700",
     ].join(" ");
 
   const NavLinks = ({ onNavigate }) => (
-    <nav className="space-y-1">
+    <nav className="space-y-1.5">
       {NAV_ITEMS.map((item) => {
         const Icon = item.icon;
         return (
@@ -108,8 +108,8 @@ export default function AdminShell() {
   );
 
   return (
-    <div className="min-h-screen bg-stone-50">
-      <header className="sticky top-0 z-40 bg-white border-b">
+    <div className="min-h-screen bg-transparent">
+      <header className="sticky top-0 z-40 border-b border-zinc-800/80 bg-zinc-950/85 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0">
             <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
@@ -117,15 +117,15 @@ export default function AdminShell() {
                 <Button
                   variant="outline"
                   size="icon"
-                  className="md:hidden shrink-0"
+                  className="md:hidden shrink-0 border-zinc-700 bg-zinc-900 text-zinc-100 hover:border-[#d4af37]"
                   aria-label="Open admin menu"
                 >
                   <Menu className="h-5 w-5" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="left" className="w-[280px]">
+              <SheetContent side="left" className="w-[280px] border-zinc-800 bg-zinc-950 text-zinc-100">
                 <SheetHeader>
-                  <SheetTitle>{meQ.data?.business?.name || "Admin"}</SheetTitle>
+                  <SheetTitle className="text-zinc-100">{meQ.data?.business?.name || "Admin"}</SheetTitle>
                 </SheetHeader>
                 <div className="mt-6">
                   <NavLinks onNavigate={() => setMobileMenuOpen(false)} />
@@ -136,16 +136,16 @@ export default function AdminShell() {
             <div className="min-w-0">
               <Link
                 to="/admin/appointments"
-                className="block truncate text-lg font-semibold tracking-tight"
+                className="block truncate text-lg font-semibold tracking-tight text-zinc-50 hover:text-[#f5d76e]"
               >
                 {meQ.data?.business?.name || "Admin"}
               </Link>
-              <div className="text-xs text-stone-500">Scheduler · Admin</div>
+              <div className="text-xs text-zinc-500">Scheduler · Admin Console</div>
             </div>
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3 text-sm">
-            <span className="hidden sm:inline text-stone-500 truncate max-w-[220px]">
+            <span className="hidden sm:inline text-zinc-500 truncate max-w-[220px]">
               {meQ.data?.user?.email}
             </span>
             <Button
@@ -153,7 +153,7 @@ export default function AdminShell() {
               variant="outline"
               size="sm"
               onClick={logout}
-              className="touch-manipulation"
+              className="touch-manipulation border-zinc-700 bg-zinc-900 text-zinc-100 hover:border-[#d4af37] hover:bg-zinc-800"
             >
               <LogOut className="h-4 w-4 sm:mr-1" />
               <span className="hidden sm:inline">Logout</span>
@@ -163,7 +163,10 @@ export default function AdminShell() {
       </header>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 md:py-8 grid gap-6 md:gap-8 md:grid-cols-[220px_1fr]">
-        <aside className="hidden md:block">
+        <aside className="hidden md:block rounded-2xl border border-zinc-800/80 bg-zinc-950/45 p-3 h-fit shadow-[0_20px_50px_rgba(0,0,0,0.22)]">
+          <div className="px-3 pb-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-zinc-500">
+            Navigation
+          </div>
           <NavLinks />
         </aside>
         <main className="min-w-0">
