@@ -11,6 +11,11 @@
         -webkit-tap-highlight-color: transparent;
     }
 
+    /* Customer color is now represented by the full card header on mobile. */
+    .App.dark .md\:hidden span[title="Customer recognition color"] {
+        display: none !important;
+    }
+
     /* Cancelled appointment eliminate button in mobile cards.
        Use clear text on mobile so the destructive action is obvious and accessible. */
     .App.dark .md\:hidden button[data-testid^="admin-appt-eliminate-"] {
