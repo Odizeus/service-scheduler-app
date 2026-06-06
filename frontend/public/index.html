@@ -10,43 +10,12 @@
         <link rel="apple-touch-icon" href="/icon-192.svg" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-title" content="Scheduler" />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@600&display=swap" rel="stylesheet" />
-        <title>Service Scheduler</title>
-        <style>
-            .admin-access-link {
-                position: fixed;
-                right: 16px;
-                bottom: 16px;
-                z-index: 50;
-                display: inline-flex;
-                align-items: center;
-                justify-content: center;
-                min-height: 40px;
-                padding: 8px 14px;
-                border-radius: 999px;
-                border: 1px solid rgba(12, 10, 9, 0.15);
-                background: rgba(255, 255, 255, 0.94);
-                color: #1c1917;
-                box-shadow: 0 10px 30px rgba(12, 10, 9, 0.12);
-                font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-                font-size: 13px;
-                font-weight: 600;
-                text-decoration: none;
-                backdrop-filter: blur(8px);
-            }
-            .admin-access-link:hover {
-                background: #1c1917;
-                color: #ffffff;
-            }
-        </style>
         <script>window.addEventListener("error",function(e){if(e.error instanceof DOMException&&e.error.name==="DataCloneError"&&e.message&&e.message.includes("PerformanceServerTiming")){e.stopImmediatePropagation();e.preventDefault()}},true);</script>
+        <title>Service Scheduler</title>
     </head>
     <body>
         <noscript>You need to enable JavaScript to run this app.</noscript>
         <div id="root"></div>
-        <a class="admin-access-link" href="/admin/login" aria-label="Admin login">Admin Login</a>
         <script>
             !(function (t, e) {
                 var o, n, p, r;
@@ -97,7 +66,7 @@
                                     return u.toString(1) + ".people (stub)";
                                 },
                                 o =
-                                    "init me ws ys ps bs capture je Di ks register register_once register_for_session unregister unregister_for_session Ps getFeatureFlag getFeatureFlagPayload isFeatureEnabled reloadFeatureFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSurveysLoaded onSessionId getSurveys getActiveMatchingSurveys renderSurvey canRenderSurvey canRenderSurveyAsync identify setPersonProperties group resetGroups setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags reset get_distinct_id getGroups get_session_id get_session_replay_url alias set_config startSessionRecording stopSessionRecording sessionRecordingStarted captureException loadToolbar get_property getSessionProperty Es $s createPersonProfile Is opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing clear_opt_in_out_capturing Ss debug xs getPageViewId captureTraceFeedback captureTraceMetric".split(
+                                    "init me ws ys ps bs capture je Di ks register register_once register_for_session unregister unregister_for_session Ps getFeatureFlag getFeatureFlagPayload isFeatureEnabled reloadFeatureFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSurveysLoaded onSessionId getSurveys getActiveMatchingSurveys renderSurvey canRenderSurveyAsync identify setPersonProperties group resetGroups setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags reset get_distinct_id getGroups get_session_id get_session_replay_url alias set_config startSessionRecording stopSessionRecording sessionRecordingStarted captureException loadToolbar get_property getSessionProperty Es $s createPersonProfile Is opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing clear_opt_in_out_capturing Ss debug xs getPageViewId captureTraceFeedback captureTraceMetric".split(
                                         " ",
                                     ),
                                 n = 0;
