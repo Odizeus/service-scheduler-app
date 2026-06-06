@@ -2,12 +2,14 @@
 from __future__ import annotations
 
 import os
+import sys
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 import bcrypt
 import jwt
-from fastapi import Header, HTTPException, status
+from fastapi import Depends, Header, HTTPException, status
+from fastapi.applications import FastAPI
 
 
 JWT_SECRET = os.environ.get("JWT_SECRET", "dev-secret-change-me")
@@ -65,3 +67,87 @@ async def require_admin(authorization: Optional[str] = Header(default=None)) -> 
     if claims.get("type") != "access":
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid token type")
     return claims
+
+
+def _server_module():
+    """Find the loaded backend server module regardless of import name."""
+    for module_name in ("server", "backend.server", "__main__"):
+        module = sys.modules.get(module_name)
+        if module and all(hasattr(module, attr) for attr in ("db", "require_current_admin", "write_audit_log")):
+            return module
+    for module in list(sys.modules.values()):
+        if module and all(hasattr(module, attr) for attr in ("db", "require_current_admin", "write_audit_log")):
+            return module
+    return None
+
+
+def _install_cancelled_appointment_delete_route(router) -> None:
+    """Install admin-only permanent elimination for cancelled appointments.
+
+    This is intentionally strict: only appointments already marked cancelled can
+    be removed. Active, pending, completed, and no-show appointments are blocked.
+    """
+    if getattr(router, "_cancelled_appointment_delete_route_installed", False):
+        return
+
+    server = _server_module()
+    if not server:
+        return
+
+    @router.delete("/admin/appointments/{appt_id}")
+    async def admin_delete_cancelled_appointment(
+        appt_id: str,
+        claims: dict = Depends(server.require_current_admin),
+    ):
+        doc = await server.db.appointments.find_one(
+            {"_id": appt_id, "business_id": claims["business_id"]}
+        )
+        if not doc:
+            raise HTTPException(404, "Appointment not found")
+        if doc.get("status") != "cancelled":
+            raise HTTPException(409, "Only cancelled appointments can be eliminated")
+
+        customer = doc.get("customer", {}) or {}
+        audit_details = {
+            "confirmation_code": doc.get("confirmation_code", ""),
+            "status": doc.get("status", ""),
+            "local_date": doc.get("local_date", ""),
+            "local_time_block": doc.get("local_time_block", ""),
+            "service_type": doc.get("service_type", ""),
+            "customer_name": customer.get("full_name", ""),
+            "customer_email": customer.get("email", ""),
+            "cancelled_by": doc.get("cancelled_by", ""),
+            "cancelled_at": doc.get("cancelled_at", ""),
+        }
+
+        res = await server.db.appointments.delete_one(
+            {"_id": appt_id, "business_id": claims["business_id"], "status": "cancelled"}
+        )
+        if res.deleted_count == 0:
+            raise HTTPException(404, "Appointment not found")
+
+        await server.write_audit_log(
+            business_id=claims["business_id"],
+            action="appointment.eliminated",
+            admin_id=claims["sub"],
+            target_type="appointment",
+            target_id=appt_id,
+            details=audit_details,
+        )
+        return {"deleted": True, "id": appt_id}
+
+    router._cancelled_appointment_delete_route_installed = True
+
+
+_original_include_router = FastAPI.include_router
+
+
+def _include_router_with_cancelled_delete(self, router, *args, **kwargs):
+    if getattr(router, "prefix", None) == "/api":
+        _install_cancelled_appointment_delete_route(router)
+    return _original_include_router(self, router, *args, **kwargs)
+
+
+if not getattr(FastAPI, "_scheduler_cancelled_delete_patch_installed", False):
+    FastAPI.include_router = _include_router_with_cancelled_delete
+    FastAPI._scheduler_cancelled_delete_patch_installed = True
