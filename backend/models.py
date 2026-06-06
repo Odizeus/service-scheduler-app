@@ -141,6 +141,10 @@ class Appointment(BaseModel):
     cancellation_reason: Optional[str] = None
     cancelled_by: Optional[Literal["admin", "customer"]] = None
     cancelled_at: Optional[datetime] = None
+    recurring_id: Optional[str] = None
+    recurrence_type: Optional[Literal["monthly"]] = None
+    recurrence_sequence: Optional[int] = None
+    series_created_at: Optional[datetime] = None
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: Optional[datetime] = None
     history: List[dict] = Field(default_factory=list)
@@ -166,6 +170,7 @@ class CreateAppointmentRequest(BaseModel):
     description: str = Field(default="", max_length=2000)
     local_date: str  # YYYY-MM-DD
     local_time_block: str  # HH:MM-HH:MM
+    recurrence_type: Optional[Literal["monthly"]] = None
 
 
 class LoginRequest(BaseModel):
