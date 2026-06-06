@@ -81,20 +81,15 @@ def _server_module():
     return None
 
 
-def _install_cancelled_appointment_delete_route(router) -> None:
-    """Install admin-only permanent elimination for cancelled appointments.
-
-    This is intentionally strict: only appointments already marked cancelled can
-    be removed. Active, pending, completed, and no-show appointments are blocked.
-    """
-    if getattr(router, "_cancelled_appointment_delete_route_installed", False):
+def _install_cancelled_appointment_delete_route(app: FastAPI) -> None:
+    """Install admin-only permanent elimination for cancelled appointments."""
+    if getattr(app, "_cancelled_appointment_delete_route_installed", False):
         return
 
     server = _server_module()
     if not server:
         return
 
-    @router.delete("/admin/appointments/{appt_id}")
     async def admin_delete_cancelled_appointment(
         appt_id: str,
         claims: dict = Depends(server.require_current_admin),
@@ -136,16 +131,23 @@ def _install_cancelled_appointment_delete_route(router) -> None:
         )
         return {"deleted": True, "id": appt_id}
 
-    router._cancelled_appointment_delete_route_installed = True
+    app.add_api_route(
+        "/api/admin/appointments/{appt_id}",
+        admin_delete_cancelled_appointment,
+        methods=["DELETE"],
+        name="admin_delete_cancelled_appointment",
+    )
+    app._cancelled_appointment_delete_route_installed = True
 
 
 _original_include_router = FastAPI.include_router
 
 
 def _include_router_with_cancelled_delete(self, router, *args, **kwargs):
+    result = _original_include_router(self, router, *args, **kwargs)
     if getattr(router, "prefix", None) == "/api":
-        _install_cancelled_appointment_delete_route(router)
-    return _original_include_router(self, router, *args, **kwargs)
+        _install_cancelled_appointment_delete_route(self)
+    return result
 
 
 if not getattr(FastAPI, "_scheduler_cancelled_delete_patch_installed", False):
