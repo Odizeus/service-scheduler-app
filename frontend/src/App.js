@@ -16,7 +16,7 @@ import { DEFAULT_SLUG } from "@/lib/api";
 
 function App() {
   return (
-    <div className="App">
+    <div className="App dark min-h-screen bg-background text-foreground">
       <Toaster richColors position="top-right" />
       <BrowserRouter>
         <Routes>
